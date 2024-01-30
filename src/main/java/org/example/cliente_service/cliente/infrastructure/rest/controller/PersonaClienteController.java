@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.example.cliente_service.cliente.application.command.EliminarPorIdentificacion;
 import org.example.cliente_service.cliente.application.command.GuardarCliente;
 import org.example.cliente_service.cliente.application.command.GuardarPersona;
+import org.example.cliente_service.cliente.application.query.BuscarClientePorId;
 import org.example.cliente_service.cliente.application.query.BuscarPorIdentificacion;
 import org.example.cliente_service.cliente.application.query.ListarCliente;
 import org.example.cliente_service.cliente.infrastructure.db.entity.ClienteEnt;
@@ -20,10 +21,12 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.example.cliente_service.cliente.application.command.EliminarPorIdentificacion.EliminarPorIdentificacionBuilder.anEliminarPorIdentificacion;
 import static org.example.cliente_service.cliente.application.command.GuardarPersona.GuardarPersonaBuilder.aGuardarPersona;
 import static org.example.cliente_service.cliente.application.command.GuardarCliente.GuardarClienteBuilder.aGuardarCliente;
+import static org.example.cliente_service.cliente.application.query.BuscarClientePorId.BuscarClientePorIdBuilder.aBuscarClientePorId;
 import static org.example.cliente_service.cliente.application.query.BuscarPorIdentificacion.BuscarPorIdentificacionBuilder.aBuscarPorIdentificacion;
 import static org.example.cliente_service.cliente.application.query.ListarCliente.ListarClienteBuilder.aListarCliente;
 
@@ -40,6 +43,7 @@ public class PersonaClienteController {
 
     private static ListarCliente<ClienteEnt> clientes;
     private static BuscarPorIdentificacion<ClienteEnt> buscarPorIdentificacion;
+    private static BuscarClientePorId<Optional<ClienteEnt>> buscarClientePorId;
     private static GuardarPersona<PersonaEnt> guardarPersona;
     private static GuardarCliente<ClienteEnt> guardarCliente;
    private static EliminarPorIdentificacion eliminarPorIdentificacion;
@@ -57,6 +61,19 @@ public class PersonaClienteController {
                 .build();
         List<PersonaClienteDto> dtoList = clientes.execute().stream().map(clienteEnt -> clienteMapper.toDto(clienteEnt)).toList();
         return Mono.just(ResponseEntity.status(200).body(dtoList));
+    }
+    @GetMapping(value = "", params = {"clienteid"}, produces = "application/json")
+    public Mono<ResponseEntity> buscarClientePorId(@RequestParam int clienteid) {
+        buscarClientePorId = aBuscarClientePorId()
+                .withData(clienteid)
+                .withRepo(clienteEntRepository)
+                .build();
+        Optional<ClienteEnt> lista = buscarClientePorId.execute();
+        if (!lista.isPresent()) {
+            return Mono.just(ResponseEntity.status(404).body(null));
+        } else {
+            return Mono.just(ResponseEntity.status(200).body(clienteMapper.toDto(lista.get())));
+        }
     }
 
     @GetMapping(value = "/{identificacion}", produces = "application/json")

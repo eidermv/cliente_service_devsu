@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ClienteEntRepository extends ClienteRepo<ClienteEnt, Integer> {
@@ -20,4 +21,7 @@ public interface ClienteEntRepository extends ClienteRepo<ClienteEnt, Integer> {
     @Override
     @Query(value = "SELECT l FROM ClienteEnt l WHERE l.identificacion = ?1")
     public ClienteEnt buscarPorIdentificacion(int identificacion);
+    @Override
+    @Query(value = "SELECT l FROM ClienteEnt l WHERE l.clienteid = ?1")
+    public Optional<ClienteEnt> buscarPorId(int id);
 }
